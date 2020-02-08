@@ -1,0 +1,87 @@
+
+import UIKit
+
+class ViewController: UIViewController {
+
+    @IBOutlet weak var SearchResultTableView: UITableView!
+    
+    var wordlist = ["all", "blue", "sky",
+                    "black", "pink", "yellow",
+                    "egg", "muscle", "music",
+                    "life", "dance", "ignore",
+                    "passion", "dream", "achieve",
+                    "Lord", "church", "sinjin",]
+    
+    var filteredWordList: [String] = []
+    var isFiltered = false
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        
+        //셀 구성
+        //필터된 값
+        SearchResultTableView.delegate = self
+        SearchResultTableView.dataSource = self
+        
+        //외부에서 만든 셀을 테이블뷰에 등록해야함
+        SearchResultTableView.register(UINib(nibName: "WordCellTableViewCell", bundle: nil), forCellReuseIdentifier: "wordCell")
+        
+        let searchVC = UISearchController(searchResultsController: nil)
+        //search result controller의 Update를 책임진다.
+        searchVC.searchResultsUpdater = self
+        self.navigationItem.searchController = searchVC
+        self.navigationItem.hidesSearchBarWhenScrolling = false
+        
+    }
+
+}
+
+extension ViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        switch isFiltered {
+        case true:
+            return filteredWordList.count
+        case false:
+            return wordlist.count
+        }
+    }
+ 
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 50
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        let cell = tableView.dequeueReusableCell(withIdentifier: "wordCell") as! WordCellTableViewCell
+        switch isFiltered {
+        case true:
+            cell.wordLabel.text = filteredWordList[indexPath.row]
+        case false:
+            cell.wordLabel.text = wordlist[indexPath.row]
+        }
+        
+        return cell
+    }
+}
+
+extension ViewController: UITableViewDelegate {
+    
+}
+
+extension ViewController: UISearchResultsUpdating {
+    public func updateSearchResults(for searchController: UISearchController) {
+        
+        if let hasText = searchController.searchBar.text?.lowercased() {
+            if hasText.isEmpty {
+                isFiltered = false
+                
+            } else{
+                isFiltered = true
+                filteredWordList = wordlist.filter({ $0.contains(hasText)})
+            }
+            
+            SearchResultTableView.reloadData()
+            
+        }
+    }
+}
